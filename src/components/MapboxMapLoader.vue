@@ -8,6 +8,8 @@
 </template>
 
 <script>
+const circleToPolygon = require('circle-to-polygon')
+
 export default {
   props: ['apikey', 'mapboxStyle', 'actualCoords', 'showActual'],
 
@@ -77,6 +79,8 @@ export default {
         if (this.map && this.mapboxgl && this.map.getLayer('linebetween')) {
           this.map.removeLayer('linebetween')
           this.map.removeSource('linebetween')
+          this.map.removeLayer('circlearound')
+          this.map.removeSource('circlearound')
         }
       }
     },
@@ -107,6 +111,28 @@ export default {
           paint: {
             'line-color': '#77bbff',
             'line-width': 2,
+          },
+        })
+
+        const polygon = circleToPolygon(
+          [this.actualCoords.lng, this.actualCoords.lat],
+          1000,
+          32
+        )
+
+        this.map.addLayer({
+          id: 'circlearound',
+          type: 'fill',
+          source: {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: polygon,
+            },
+          },
+          layout: {},
+          paint: {
+            'fill-color': 'rgba(255,187,0,.3)',
           },
         })
 

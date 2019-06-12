@@ -6,7 +6,8 @@
     <div class="right">
       <div class="righttop">
         <div v-if="showActual">
-          ここだ！
+          <template v-if="distanceOff && distanceOff >1 ">惜しい！</template>
+          <template v-if="distanceOff && distanceOff <= 1 && distanceOff > 0">当たった！</template>
           <template v-if="distanceOff && distanceOff > 0">
             場所からの距離は
             <span class="highlight">{{ distanceOff.toFixed(2) }}km</span>。
@@ -43,6 +44,7 @@ export default {
       lng: null,
       showActual: false,
       distanceOff: null,
+      panoObject: null,
       gk: require('../gmapsApiKey.json').key,
       kyotoPolygon: {
         type: 'Feature',
@@ -67,7 +69,16 @@ export default {
       },
     }
   },
-  watch: {},
+  watch: {
+    distanceOff(newDistance) {
+      if (newDistance > 0 && newDistance < 1) {
+        setTimeout(() => {
+          alert('当たった！スタフまでお願いします！')
+          console.log('Winner!!', new Date())
+        }, 300)
+      }
+    },
+  },
   created() {
     let mapsAPIScript = document.createElement('script')
     mapsAPIScript.setAttribute(
@@ -90,16 +101,24 @@ export default {
       // console.log(point[1], point[0], heading)
       this.lat = point[1]
       this.lng = point[0]
+      if (!this.panoObject)
+        this.panoObject = new google.maps.StreetViewPanorama(
+          this.$refs.streetview,
+          {
+            position: { lat: this.lat, lng: this.lng },
+            pov: { heading, pitch: 0 },
+            // clickToGo: false,
+            showRoadLabels: false,
+            zoom: 0,
+          }
+        )
+      else {
+        this.panoObject.setPosition({ lat: this.lat, lng: this.lng })
+        this.panoObject.setPov({ heading, pitch: 0, zoom: 0 })
+      }
 
-      const pano = new google.maps.StreetViewPanorama(this.$refs.streetview, {
-        position: { lat: this.lat, lng: this.lng },
-        pov: { heading, pitch: 0 },
-        // clickToGo: false,
-        showRoadLabels: false,
-        zoom: 0,
-      })
       setTimeout(() => {
-        if (!pano.pano) {
+        if (!this.panoObject.pano) {
           console.log('pano failed!')
           this.nextLocation()
         }
