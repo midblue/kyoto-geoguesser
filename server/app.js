@@ -1,3 +1,5 @@
+var screenshot = require('desktop-screenshot')
+
 var express = require('express')
 var fs = require('fs')
 var app = express()
@@ -10,7 +12,7 @@ app.use(cors())
 app.post('/dataupload', function(req, res) {
   const body = req.body
 
-  fs.readFile('./saveddata.json', (err, data) => {
+  fs.readFile('./saved data/saveddata.json', (err, data) => {
     if (err) return res.send({ status: 'failed to read' })
     var dataarray = JSON.parse(data)
     dataarray.push(body)
@@ -23,6 +25,15 @@ app.post('/dataupload', function(req, res) {
       }
     )
   })
+
+  screenshot(
+    `./saved data/screenshots/${body.date}.png`,
+    { width: 1000, quality: 60 },
+    (error, complete) => {
+      if (error) console.log('Screenshot failed', error)
+      else console.log('Screenshot succeeded')
+    }
+  )
 })
 
 app.listen(3008, () => {
